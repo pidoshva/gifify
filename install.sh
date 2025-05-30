@@ -2,28 +2,32 @@
 
 echo "Installing gifify..."
 
-# Install ffmpeg if not already
+# Check for ffmpeg and install if missing
 if ! command -v ffmpeg &> /dev/null; then
-	echo "ffmpeg not found. Installing via Homebrew..."
-	if ! command  -v brew &> /dev/null; then
-		echo "Homebrew is not installed! Install it manually first."
-		exit 1
-	fi
-	brew install ffmpeg
+    echo "🔍 ffmpeg not found. Installing via Homebrew..."
+    if ! command -v brew &> /dev/null; then
+        echo "Homebrew is not installed! Please install it manually first."
+        exit 1
+    fi
+    brew install ffmpeg || { echo "Failed to install ffmpeg."; exit 1; }
 fi
 
-# Create ~/bin directory if not present already
-mkdir -p ~/bin
+# Create ~/bin if not exists
+BIN_DIR="$HOME/bin"
+mkdir -p "$BIN_DIR"
 
-# Copy gifify.sh to ~/bin and make it executable
-cp gifify.sh ~/bin/gifify.sh
-chmod +x ~/bin/gifify
+# Copy gifify.sh and rename to 'gifify'
+SCRIPT_NAME="gifify.sh"
+TARGET_SCRIPT="$BIN_DIR/gifify"
 
-# Add ~/bin to PATH if not already in there
-if [[ ":$PATH :" != *":$HOME/bin:"* ]]; then
-	echo 'export PATH="$HOME/bin:$PATH"
-	export PATH="$HOME/bin:$PATH"
+cp "$SCRIPT_NAME" "$TARGET_SCRIPT" || { echo "Failed to copy $SCRIPT_NAME."; exit 1; }
+chmod +x "$TARGET_SCRIPT"
+
+# Add ~/bin to PATH if not already present
+if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then
+    echo "Adding $BIN_DIR to PATH in ~/.zshrc..."
+    echo 'export PATH="$HOME/bin:$PATH"' >> ~/.zshrc
 fi
 
-echo "gifify installed! Run gifify for details."
+echo "gifify installed! Open a new terminal or run 'source ~/.zshrc' to start using it."
 
