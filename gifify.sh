@@ -1,4 +1,5 @@
-GIFIFY_VERSION="1.0.0"
+#!/usr/bin/env bash
+# gifify function
 
 gifify() {
   if ! command -v ffmpeg &> /dev/null; then
@@ -12,12 +13,12 @@ gifify() {
   fi
 
   local input="$1"
-  local filename=$(basename "$input")
+  local filename
+  filename=$(basename "$input")
   local name="${filename%.*}"
   local output_dir="$HOME/Desktop/gifified"
   mkdir -p "$output_dir"
   local output="${output_dir}/${name}.gif"
-
   local width="1920"  # Default: 1080p width
 
   if [[ "$*" == *"--720p"* ]]; then
