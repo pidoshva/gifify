@@ -17,6 +17,33 @@ install_ffmpeg() {
     fi
 }
 
+
+if ! command -v ffmpeg >/dev/null; then
+    echo "ffmpeg not found."
+    install_ffmpeg || exit 1
+fi
+
+GIFIFY_DIR="$HOME/.gifify"
+mkdir -p "$GIFIFY_DIR"
+
+# URLs for downloading the script and version
+GIFIFY_URL="https://raw.githubusercontent.com/pidoshva/gifify/main/gifify.sh"
+VERSION_URL="https://raw.githubusercontent.com/pidoshva/gifify/main/VERSION"
+
+# Check remote version
+REMOTE_VERSION=$(curl -fsSL "$VERSION_URL")
+LOCAL_VERSION="none"
+[ -f "$GIFIFY_DIR/VERSION" ] && LOCAL_VERSION=$(cat "$GIFIFY_DIR/VERSION")
+
+if [ "$REMOTE_VERSION" != "$LOCAL_VERSION" ]; then
+    echo "Installing gifify version $REMOTE_VERSION..."
+    curl -fsSL "$GIFIFY_URL" -o "$GIFIFY_DIR/gifify.sh"
+    echo "$REMOTE_VERSION" > "$GIFIFY_DIR/VERSION"
+else
+    echo "gifify is up to date (version $LOCAL_VERSION)"
+fi
+
+
 if ! command -v ffmpeg >/dev/null; then
     echo "ffmpeg not found."
     install_ffmpeg || exit 1
