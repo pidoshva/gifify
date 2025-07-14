@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # gifify function
+
 gifify() {
   if ! command -v ffmpeg &> /dev/null; then
     echo "Error: ffmpeg is not installed! Installing ffmpeg..."
