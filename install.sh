@@ -25,22 +25,11 @@ fi
 GIFIFY_DIR="$HOME/.gifify"
 mkdir -p "$GIFIFY_DIR"
 
-# URLs for downloading the script and version
+# URL for downloading the script
 GIFIFY_URL="https://raw.githubusercontent.com/pidoshva/gifify/main/gifify.sh"
-VERSION_URL="https://raw.githubusercontent.com/pidoshva/gifify/main/VERSION"
 
-# Check remote version
-REMOTE_VERSION=$(curl -fsSL "$VERSION_URL")
-LOCAL_VERSION="none"
-[ -f "$GIFIFY_DIR/VERSION" ] && LOCAL_VERSION=$(cat "$GIFIFY_DIR/VERSION")
-
-if [ "$REMOTE_VERSION" != "$LOCAL_VERSION" ]; then
-    echo "Installing gifify version $REMOTE_VERSION..."
-    curl -fsSL "$GIFIFY_URL" -o "$GIFIFY_DIR/gifify.sh"
-    echo "$REMOTE_VERSION" > "$GIFIFY_DIR/VERSION"
-else
-    echo "gifify is up to date (version $LOCAL_VERSION)"
-fi
+echo "Downloading gifify script..."
+curl -fsSL "$GIFIFY_URL" -o "$GIFIFY_DIR/gifify.sh"
 
 # Ensure gifify function is loaded in zsh
 ZSHRC="$HOME/.zshrc"

@@ -15,12 +15,5 @@ jobs:
       run: sudo apt-get update && sudo apt-get install -y shellcheck
     - name: Run shellcheck
       run: shellcheck install.sh gifify.sh
-    - name: Verify version match
-      run: |
-        version=$(cat VERSION)
-        script_version=$(grep -oE 'GIFIFY_VERSION="([^"]+)"' gifify.sh | cut -d'"' -f2)
-        if [ "$version" != "$script_version" ]; then
-          echo "VERSION mismatch: $version vs $script_version" >&2
-          exit 1
-        fi
+
 

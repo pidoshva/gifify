@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2034
-GIFIFY_VERSION="1.0.1"
-
+# gifify function
 gifify() {
   if ! command -v ffmpeg &> /dev/null; then
     echo "Error: ffmpeg is not installed! Installing ffmpeg..."
