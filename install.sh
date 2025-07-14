@@ -17,6 +17,7 @@ install_ffmpeg() {
     fi
 }
 
+
 if ! command -v ffmpeg >/dev/null; then
     echo "ffmpeg not found."
     install_ffmpeg || exit 1
@@ -41,6 +42,16 @@ if [ "$REMOTE_VERSION" != "$LOCAL_VERSION" ]; then
 else
     echo "gifify is up to date (version $LOCAL_VERSION)"
 fi
+
+
+if ! command -v ffmpeg >/dev/null; then
+    echo "ffmpeg not found."
+    install_ffmpeg || exit 1
+fi
+
+GIFIFY_DIR="$HOME/.gifify"
+mkdir -p "$GIFIFY_DIR"
+cp "gifify.sh" "$GIFIFY_DIR/gifify.sh"
 
 # Ensure gifify function is loaded in zsh
 ZSHRC="$HOME/.zshrc"
