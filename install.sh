@@ -1,30 +1,49 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
 
-echo "Installing gifify..."
+GIFIFY_DIR="$HOME/.gifify"
+REPO_URL="https://raw.githubusercontent.com/pidoshva/gifify/main"
 
-# Detect package manager for ffmpeg installation
+# ── Helpers ─────────────────────────────────────────────────────────
+
+info()  { echo "  $*"; }
+error() { echo "Error: $*" >&2; }
+
+detect_rc_file() {
+    case "$(basename "${SHELL:-/bin/bash}")" in
+        zsh)  echo "$HOME/.zshrc"  ;;
+        *)    echo "$HOME/.bashrc" ;;
+    esac
+}
+
 install_ffmpeg() {
-    if command -v brew >/dev/null; then
-        echo "Installing ffmpeg with Homebrew..."
+    if command -v brew >/dev/null 2>&1; then
+        info "Installing ffmpeg with Homebrew..."
         brew install ffmpeg
-    elif command -v apt-get >/dev/null; then
-        echo "Installing ffmpeg with apt-get..."
+    elif command -v apt-get >/dev/null 2>&1; then
+        info "Installing ffmpeg with apt-get..."
         sudo apt-get update && sudo apt-get install -y ffmpeg
+    elif command -v dnf >/dev/null 2>&1; then
+        info "Installing ffmpeg with dnf..."
+        sudo dnf install -y ffmpeg
+    elif command -v pacman >/dev/null 2>&1; then
+        info "Installing ffmpeg with pacman..."
+        sudo pacman -S --noconfirm ffmpeg
     else
-        echo "No supported package manager found. Please install ffmpeg manually." >&2
+        error "No supported package manager found. Please install ffmpeg manually."
         return 1
     fi
 }
 
+# ── Uninstall ───────────────────────────────────────────────────────
 
-if ! command -v ffmpeg >/dev/null; then
-    echo "ffmpeg not found."
-    install_ffmpeg || exit 1
-fi
+do_uninstall() {
+    echo "Uninstalling gifify..."
 
-GIFIFY_DIR="$HOME/.gifify"
-mkdir -p "$GIFIFY_DIR"
+    if [ -d "$GIFIFY_DIR" ]; then
+        rm -rf "$GIFIFY_DIR"
+        info "Removed $GIFIFY_DIR"
+    fi
 
 # URL for downloading the script
 GIFIFY_URL="https://raw.githubusercontent.com/pidoshva/gifify/main/gifify.sh"
@@ -48,24 +67,24 @@ if [ -n "$ZSH_VERSION" ]; then
 GIFIFY_URL="https://raw.githubusercontent.com/pidoshva/gifify/main/gifify.sh"
 VERSION_URL="https://raw.githubusercontent.com/pidoshva/gifify/main/VERSION"
 
-# Check remote version
-REMOTE_VERSION=$(curl -fsSL "$VERSION_URL")
-LOCAL_VERSION="none"
-[ -f "$GIFIFY_DIR/VERSION" ] && LOCAL_VERSION=$(cat "$GIFIFY_DIR/VERSION")
+    # Also clean the other rc file in case they switched shells
+    local rc_files=("$rc_file")
+    [ "$rc_file" != "$HOME/.bashrc" ] && rc_files+=("$HOME/.bashrc")
+    [ "$rc_file" != "$HOME/.zshrc" ]  && rc_files+=("$HOME/.zshrc")
 
-if [ "$REMOTE_VERSION" != "$LOCAL_VERSION" ]; then
-    echo "Installing gifify version $REMOTE_VERSION..."
-    curl -fsSL "$GIFIFY_URL" -o "$GIFIFY_DIR/gifify.sh"
-    echo "$REMOTE_VERSION" > "$GIFIFY_DIR/VERSION"
-else
-    echo "gifify is up to date (version $LOCAL_VERSION)"
-fi
+    for rc in "${rc_files[@]}"; do
+        if [ -f "$rc" ] && grep -q 'gifify' "$rc" 2>/dev/null; then
+            # Remove the comment line and the source line
+            sed -i.bak '/# Load gifify/d;/\.gifify\/gifify\.sh/d' "$rc"
+            rm -f "${rc}.bak"
+            info "Cleaned $rc"
+        fi
+    done
 
+    echo "gifify uninstalled."
+}
 
-if ! command -v ffmpeg >/dev/null; then
-    echo "ffmpeg not found."
-    install_ffmpeg || exit 1
-fi
+# ── Install ─────────────────────────────────────────────────────────
 
 GIFIFY_DIR="$HOME/.gifify"
 mkdir -p "$GIFIFY_DIR"
