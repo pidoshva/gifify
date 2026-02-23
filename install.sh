@@ -45,8 +45,27 @@ do_uninstall() {
         info "Removed $GIFIFY_DIR"
     fi
 
-    local rc_file
-    rc_file="$(detect_rc_file)"
+# URL for downloading the script
+GIFIFY_URL="https://raw.githubusercontent.com/pidoshva/gifify/main/gifify.sh"
+
+echo "Downloading gifify script..."
+curl -fsSL "$GIFIFY_URL" -o "$GIFIFY_DIR/gifify.sh"
+
+# Ensure gifify function is loaded in zsh
+ZSHRC="$HOME/.zshrc"
+SOURCE_LINE="source \"$HOME/.gifify/gifify.sh\""
+if ! grep -Fq 'gifify.sh' "$ZSHRC" 2>/dev/null; then
+    echo "Adding gifify function to $ZSHRC..."
+    echo -e "\n# Load gifify function\n$SOURCE_LINE" >> "$ZSHRC"
+fi
+
+# Source the function for current session if running zsh
+if [ -n "$ZSH_VERSION" ]; then
+# shellcheck disable=SC1090
+
+# URLs for downloading the script and version
+GIFIFY_URL="https://raw.githubusercontent.com/pidoshva/gifify/main/gifify.sh"
+VERSION_URL="https://raw.githubusercontent.com/pidoshva/gifify/main/VERSION"
 
     # Also clean the other rc file in case they switched shells
     local rc_files=("$rc_file")
@@ -67,63 +86,22 @@ do_uninstall() {
 
 # ── Install ─────────────────────────────────────────────────────────
 
-do_install() {
-    echo "Installing gifify..."
+GIFIFY_DIR="$HOME/.gifify"
+mkdir -p "$GIFIFY_DIR"
+cp "gifify.sh" "$GIFIFY_DIR/gifify.sh"
 
-    # 1. Ensure ffmpeg is available
-    if ! command -v ffmpeg >/dev/null 2>&1; then
-        info "ffmpeg not found."
-        install_ffmpeg || exit 1
-    fi
+# Ensure gifify function is loaded in zsh
+ZSHRC="$HOME/.zshrc"
+SOURCE_LINE="source \"$HOME/.gifify/gifify.sh\""
+if ! grep -Fq 'gifify.sh' "$ZSHRC" 2>/dev/null; then
+    echo "Adding gifify function to $ZSHRC..."
+    echo -e "\n# Load gifify function\n$SOURCE_LINE" >> "$ZSHRC"
+fi
 
-    # 2. Create install directory
-    mkdir -p "$GIFIFY_DIR"
+# Source the function for current session if running zsh
+if [ -n "$ZSH_VERSION" ]; then
 
-    # 3. Copy or download gifify.sh
-    local script_dir
-    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    source "$ZSHRC"
+fi
 
-    if [ -f "$script_dir/gifify.sh" ]; then
-        # Local clone install
-        cp "$script_dir/gifify.sh" "$GIFIFY_DIR/gifify.sh"
-        info "Copied gifify.sh from local repo"
-        # Copy VERSION if present
-        if [ -f "$script_dir/VERSION" ]; then
-            cp "$script_dir/VERSION" "$GIFIFY_DIR/VERSION"
-        fi
-    else
-        # Remote install (curl pipe)
-        info "Downloading gifify.sh..."
-        curl -fsSL "$REPO_URL/gifify.sh" -o "$GIFIFY_DIR/gifify.sh"
-        curl -fsSL "$REPO_URL/VERSION" -o "$GIFIFY_DIR/VERSION"
-    fi
-
-    chmod +x "$GIFIFY_DIR/gifify.sh"
-
-    # 4. Add source line to shell RC file
-    local rc_file source_line
-    rc_file="$(detect_rc_file)"
-    source_line="source \"$GIFIFY_DIR/gifify.sh\""
-
-    if ! grep -Fq 'gifify.sh' "$rc_file" 2>/dev/null; then
-        info "Adding gifify to $rc_file..."
-        printf '\n# Load gifify\n%s\n' "$source_line" >> "$rc_file"
-    else
-        info "gifify already configured in $rc_file"
-    fi
-
-    echo ""
-    echo "gifify installed! Run 'source $rc_file' or open a new terminal to start using it."
-    echo "Usage: gifify <video_file> [--720p|--480p|--360p]"
-}
-
-# ── Main ────────────────────────────────────────────────────────────
-
-main() {
-    case "${1:-}" in
-        --uninstall) do_uninstall ;;
-        *)           do_install   ;;
-    esac
-}
-
-main "$@"
+echo "gifify installed! Open a new terminal or run 'source $ZSHRC' to start using it."

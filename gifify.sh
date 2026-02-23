@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# gifify — convert videos to optimized GIFs using ffmpeg's two-pass palette technique
-# https://github.com/pidoshva/gifify
+# gifify function
 
 GIFIFY_VERSION="1.1.0"
 
@@ -49,55 +48,14 @@ Options:
   -h, --help            Show this help message
   -v, --version         Show version"
 
-    # ── Parse arguments ─────────────────────────────────────────────
-    local input="" output="" fps=15 width=1920
-
-    while [ $# -gt 0 ]; do
-        case "$1" in
-            -h|--help)
-                echo "$_gifify_usage"
-                return 0
-                ;;
-            -v|--version)
-                echo "gifify $GIFIFY_VERSION"
-                return 0
-                ;;
-            -o|--output)
-                if [ -z "${2:-}" ]; then
-                    echo "Error: --output requires a path argument." >&2
-                    return 1
-                fi
-                output="$2"
-                shift 2
-                ;;
-            --fps)
-                if [ -z "${2:-}" ]; then
-                    echo "Error: --fps requires a numeric argument." >&2
-                    return 1
-                fi
-                fps="$2"
-                shift 2
-                ;;
-            --1080p) width=1920; shift ;;
-            --720p)  width=1280; shift ;;
-            --480p)  width=854;  shift ;;
-            --360p)  width=640;  shift ;;
-            -*)
-                echo "Error: unknown option '$1'" >&2
-                echo "$_gifify_usage" >&2
-                return 1
-                ;;
-            *)
-                if [ -z "$input" ]; then
-                    input="$1"
-                else
-                    echo "Error: unexpected argument '$1'" >&2
-                    return 1
-                fi
-                shift
-                ;;
-        esac
-    done
+  local input="$1"
+  local filename
+  filename=$(basename "$input")
+  local name="${filename%.*}"
+  local output_dir="$HOME/Desktop/gifified"
+  mkdir -p "$output_dir"
+  local output="${output_dir}/${name}.gif"
+  local width="1920"  # Default: 1080p width
 
     # ── Validate input ──────────────────────────────────────────────
     if [ -z "$input" ]; then
