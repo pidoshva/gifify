@@ -74,6 +74,18 @@ do_install() {
     if ! command -v ffmpeg >/dev/null 2>&1; then
         info "ffmpeg not found."
         install_ffmpeg || exit 1
+
+        # Verify it actually landed on PATH
+        if ! command -v ffmpeg >/dev/null 2>&1; then
+            error "ffmpeg installed but is not on PATH. Open a new terminal or install it manually, then re-run."
+            exit 1
+        fi
+    fi
+
+    # ffprobe ships with ffmpeg and is required for input analysis
+    if ! command -v ffprobe >/dev/null 2>&1; then
+        error "ffprobe not found (normally bundled with ffmpeg). Please reinstall ffmpeg."
+        exit 1
     fi
 
     # 2. Create install directory
@@ -93,9 +105,20 @@ do_install() {
         fi
     else
         # Remote install (curl pipe)
+        if ! command -v curl >/dev/null 2>&1; then
+            error "curl is required for remote install but was not found. Install curl or clone the repo and run ./install.sh"
+            exit 1
+        fi
         info "Downloading gifify.sh..."
         curl -fsSL "$REPO_URL/gifify.sh" -o "$GIFIFY_DIR/gifify.sh"
-        curl -fsSL "$REPO_URL/VERSION" -o "$GIFIFY_DIR/VERSION"
+        # VERSION is optional (gifify.sh carries its own GIFIFY_VERSION)
+        curl -fsSL "$REPO_URL/VERSION" -o "$GIFIFY_DIR/VERSION" 2>/dev/null || true
+    fi
+
+    # Verify we ended up with a usable script
+    if [ ! -s "$GIFIFY_DIR/gifify.sh" ]; then
+        error "gifify.sh is missing or empty after install. Aborting."
+        exit 1
     fi
 
     chmod +x "$GIFIFY_DIR/gifify.sh"

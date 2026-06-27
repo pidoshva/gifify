@@ -112,7 +112,7 @@ _gifify_spinner_start() {
     (
         local i=0
         while true; do
-            local frame="${frames:i%${#frames}:1}"
+            local frame="${frames:$(( i % ${#frames} )):1}"
             printf "\r${_CLR_CYAN}  %s${_CLR_RESET} ${_CLR_DIM}%s${_CLR_RESET}" "$frame" "$msg"
             i=$((i + 1))
             sleep 0.08
@@ -186,6 +186,16 @@ Options:
             --fps)
                 if [ -z "${2:-}" ]; then
                     _gifify_err "--fps requires a numeric argument"
+                    return 1
+                fi
+                case "$2" in
+                    ''|*[!0-9]*)
+                        _gifify_err "--fps must be a positive integer (got '$2')"
+                        return 1
+                        ;;
+                esac
+                if [ "$2" -lt 1 ]; then
+                    _gifify_err "--fps must be at least 1"
                     return 1
                 fi
                 fps="$2"
